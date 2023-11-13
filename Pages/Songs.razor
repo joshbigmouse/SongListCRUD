@@ -1,0 +1,234 @@
+﻿@page "/songs"
+@using BlazorSongList.Models
+
+<h1>Song List Database</h1>
+
+<p>This component demonstrates managing a Song List.</p>
+
+@if (songs == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">Add</button>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title </th>
+                <th>Artist </th>
+                <th>Year</th>
+                <th> </th>
+                <th> </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in songs)
+            {
+                <tr>
+                    <td>@item.SongId</td>
+                    <td>@item.Title</td>
+                    <td>@item.Artist</td>
+                    <td>@item.Year</td>
+                    <td>
+                        <button class="btn btn-outline-dark" @onclick="()=>Edit(item)">Edit</button>
+                        <button class="btn btn-outline-danger" @onclick="()=>Delete(item)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (editingSong != null)
+    {
+        <div class="modal-body">
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-sm">Song ID</span>
+                </div>
+                <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" @bind="@editingSong.SongId">   
+            </div>
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-sm">Title</span>
+                </div>
+                <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" @bind="@editingSong.Title">
+            </div>
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-sm">Artist</span>
+                </div>
+                <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" @bind="@editingSong.Artist">
+            </div>
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-sm">Year</span>
+                </div>
+                <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" @bind="@editingSong.Year">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+            <button type="button" class="btn btn-primary" @onclick="SaveEdit">Save</button>
+        </div>
+    }
+
+    else
+    {
+        <p><em></em></p>
+    }
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group input-group-sm mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="inputGroup-sizing-sm">Song ID</span>
+                        </div>
+                        <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" @bind-value=SongID>
+                    </div>
+                    <div class="input-group input-group-sm mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="inputGroup-sizing-sm">Title</span>
+                        </div>
+                        <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" @bind-value=Title>
+                    </div>
+                    <div class="input-group input-group-sm mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="inputGroup-sizing-sm">Artist</span>
+                        </div>
+                        <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" @bind-value=Artist>
+                    </div>
+                    <div class="input-group input-group-sm mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="inputGroup-sizing-sm">Year</span>
+                        </div>
+                        <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" @bind-value=Year>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" @onclick="@Add">Submit</button>
+                </div>
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <p class="text-danger">@ErrorMessage</p>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    List<Song> songs { get; set; } = new List<Song>();
+    private string SongID = null!;
+    private string Title = null!;
+    private string Artist = null!;
+    private string Year = null!;
+    Song? editingSong;
+    private string? ErrorMessage { get; set; }
+
+
+    protected override void OnInitialized()
+    {
+        load();
+    }
+
+    private void load() 
+    {
+        var data = new Song();
+        data.SongId = "1";
+        data.Title = "Sample";
+        data.Artist = "Sample";
+        data.Year = "2023";
+        songs.Add(data);
+    }
+
+    private void Edit(Song song)
+    {
+        editingSong = new Song
+            {
+                SongId = song.SongId,
+                Title = song.Title,
+                Artist = song.Artist,
+                Year = song.Year
+            };
+
+        // Manually trigger a re-render
+        StateHasChanged();
+    }
+    private void SaveEdit()
+    {
+        // Find the index of the editing song in the list
+        var index = songs.FindIndex(s => s.SongId == editingSong?.SongId);
+
+        if (index != -1)
+        {
+            // Update the values of the song in the list
+            songs[index] = editingSong!;
+        }
+
+        // Clear the editingSong variable
+        editingSong = null;
+
+        // Manually trigger a re-render
+        StateHasChanged();
+    }
+
+    private void CancelEdit()
+    {
+        // Clear the editingSong variable
+        editingSong = null;
+
+        // Manually trigger a re-render
+        StateHasChanged();
+    }
+
+    private void Delete(Song song)
+    {
+
+        songs.Remove(song);
+    }
+
+    private void Add()
+    {
+        if (songs.Any(s => s.SongId == SongID))
+        {
+            // Handle the error, for example, show a message to the user
+            // You can customize this based on your application's needs
+            // You might want to display an error message or prevent the addition
+            // of a song with a duplicate SongID.
+            // For now, let's set an error message.
+            ErrorMessage = "Song with the same ID already exists.";
+        }
+        else
+        {
+            // Add the new song if SongID is unique
+            var data = new Song
+                {
+                    SongId = SongID,
+                    Title = Title,
+                    Artist = Artist,
+                    Year = Year
+                };
+            songs.Add(data);
+
+            // Reset the input values after adding a song
+            SongID = null!;
+            Title = null!;
+            Artist = null!;
+            Year = null!;
+
+            // Clear any previous error message
+            ErrorMessage = null;
+        }
+    }
+
+}
+
